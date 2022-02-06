@@ -1,11 +1,16 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include "./../libs/header.hpp"
-
+#include "./../zipCraft/zipCraftHeader.hpp"
 
 using namespace std;
 
 int main(){
+    
+    zipCrafter crafter("package.zip");
 
+    crafter.listDirectory("");
+
+    crafter.closeZip();
+    
 };
