@@ -103,5 +103,24 @@ in the end of all operations you need to close the file:
     char buffer[sizeToRead + 1];
     bool correctPassword = crafter.readEncryptedFileByIndex(0,"password",sizeToRead,buffer);
 ```
+# Set protection for your files
+### With this lib you can set password for your files with two methods, by name and by index. The methods of encrytion availables are: 
+    AES_128_ENCRYPTION 
+    AES_192_ENCRYPTION 
+    AES_256_ENCRYPTION
 
+### Setting password my name
+```C++
+crafter.writeFile("example.txt","hello!",6);
+
+cout << crafter.checkIfExists("example.txt");
+    crafter.setPasswordToFile("example.txt",AES_256_ENCRYPTION,":)");
+```
+
+## Setting password by index
+```C++
+crafter.writeFile("example.txt","hello!",6);
+
+crafter.setPasswordToFileByIndex(0,AES_256_ENCRYPTION,":)");
+```
 
