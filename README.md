@@ -79,16 +79,18 @@ The only dependency of the zipCrafter is the libzip, but if you use Linux don't 
 ```
 in the end of all operations you need to close the file:
 ```C++
-
-    crafter.closeZip();
-
+crafter.closeZip();
 ```
 ### get file index by name
 ```C++
-crafter.writeFile("hello.txt",":)",2);
-crafter.writeFile("hello2.txt",":)",2);
+crafter.openZip();
+cout << crafter.getFileIndexByName("example.txt");
+```
 
-cout << crafter.getFileIndexByName("hello2.txt");
+### get file name by index
+```C++
+crafter.openZip();
+string name = crafter.getFileNameByIndex(0);
 ```
 
 # Operations with encrypted files

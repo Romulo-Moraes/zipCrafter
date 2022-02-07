@@ -207,6 +207,15 @@ public:
         }
     };
 
+    string getFileNameByIndex(int index){
+        if(index < this->getEntriesNumber()){
+            return zip_get_name(this->z,index,0);
+        }
+        else{
+
+        }
+    }
+
     // Read an file
     void readFile(string path, int size, char *source)
     {

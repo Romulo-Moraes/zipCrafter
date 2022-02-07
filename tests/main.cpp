@@ -11,14 +11,9 @@ using namespace std;
 int main(){
     zipCrafter crafter("package.zip");
 
-    crafter.createZip();
+    crafter.openZip();
 
-    crafter.writeFile("hello.txt",":)",2);
-    crafter.writeFile("hello2.txt",":)",2);
-
-    cout << crafter.getFileIndexByName("hello2.txt");
-
-    crafter.closeZip();
+    string name = crafter.getFileNameByIndex(0);
     
 
 };
