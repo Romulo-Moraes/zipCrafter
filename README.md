@@ -8,6 +8,9 @@ This is an C++ class based wrapper to interact with files, with this is possible
 
 The wrapper has only an single-file, but need of libzip installed to work, i guess the libzip is hard to learn and the documentation is not so good, then i created this library.
 
+# Dependencies
+
+The only dependency of the zipCrafter is the libzip, but if you use Linux don't worry, in some distros the <zip.h> header already come with the system installation, then you just need import the zipCraft header file to the project and just use it.
 # Documentation
 ### The file has an just one class (and some custom exceptions), then you just need instantiate it:
 ```C++
