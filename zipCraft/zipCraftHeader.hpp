@@ -5,6 +5,10 @@
 #include <string.h>
 #include <fstream>
 
+#define AES_128_ENCRYPTION 0x0101
+#define AES_192_ENCRYPTION 0x0102
+#define AES_256_ENCRYPTION 0x0103
+
 #define RAND_CHARS "sdokfjogfjerigjeigjergjtrigjtrigjtrugjtuhjuigjerigkeoepferoktphrphopghopgofpgotpogpfogpfgotphlrgplfdbplpdfgpeorepopeopeoeoo"
 
 using namespace std;
@@ -61,6 +65,8 @@ class cantAllocateMemory : exception
 class zipOpenDefaultError : exception
 {
 };
+class unknowEncryptionMethodException : exception{};
+class setPasswordToFileByIndexOutOfRange : exception{};
 
 class zipCrafter
 {
@@ -89,6 +95,41 @@ public:
             throw zipFileNotExists();
         }
     }
+
+    void setPasswordToFile(string path,int encryption,string password){
+        if(this->checkIfFileIsOpen()){
+            if(checkIfExists(path)){
+                if(checkIfEncryptionExists(encryption)){
+                    struct zip_stat st;
+                    zip_stat(this->z,path.c_str(),0,&st);
+                    zip_file_set_encryption(this->z,st.index,encryption,password.c_str());
+                }
+                else{
+                    throw unknowEncryptionMethodException();
+                }
+            }
+            else{
+                throw itemDontExistsException();
+            }
+        }   
+        else{
+            throw zipIsClosedException();
+        }
+    };
+
+    void setPasswordToFileByIndex(int index,int encryption,string password){
+        if(index < this->getEntriesNumber()){
+            if(checkIfEncryptionExists(encryption)){
+                zip_file_set_encryption(this->z,index,encryption,password.c_str());
+            }
+            else{
+                throw unknowEncryptionMethodException();
+            }
+        }   
+        else{
+            throw setPasswordToFileByIndexOutOfRange();
+        }
+    };
 
     void createZip()
     {
@@ -199,6 +240,7 @@ public:
             zip_source_t *source;
             source = zip_source_buffer(this->z, buffer, sizeToWrite, 0);
             zip_file_add(this->z, path.c_str(), source,0);
+            this->writeFileInDisk();
         }
         else
         {
@@ -237,6 +279,7 @@ public:
                 struct zip_stat st;
                 zip_stat_index(this->z, index, 0, &st);
                 this->writeFile(st.name, buffer,sizeToWrite);
+                this->writeFileInDisk();
             }
             else
             {
@@ -506,6 +549,10 @@ private:
     bool zipIsOpen = false;
     string zipName;
 
+    void writeFileInDisk(){
+        this->closeZip();
+        this->openZip();
+    };
 
     void handleOpenZipErrors()
     {
@@ -528,6 +575,13 @@ private:
             }
         }
     };
+
+    bool checkIfEncryptionExists(int encryption){
+        if(encryption == AES_128_ENCRYPTION || encryption == AES_192_ENCRYPTION || encryption == AES_256_ENCRYPTION){
+            return true;
+        }
+        return false;
+    }
 
     void executeZipOpen(bool isCreate)
     {
