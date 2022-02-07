@@ -12,11 +12,17 @@ The wrapper has only an single-file, but need of libzip installed to work, i gue
 
 The only dependency of the zipCrafter is the libzip, but if you use Linux don't worry, in some distros the <zip.h> header already come with the system installation, then you just need import the zipCraft header file to the project and just use it.
 # Documentation
-### The file has an just one class (and some custom exceptions), then you just need instantiate it:
+### The file has an just one class (and some custom exceptions), then you just need instantiate and choose an method:
 ```C++
 
     // the var filename is of type string
     zipCrafter crafter(filename);
+
+    
+    crafter.openZip(); // Open an zip that already exists
+    // or
+
+    crafter.createZip(); // Delete the file if exists then create an new file
 
 ```
 ### then you can list all base files in the zip directory with the command (Is possible change the directory to read in the method args):

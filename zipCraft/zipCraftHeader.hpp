@@ -1,15 +1,14 @@
 #include <zip.h>
 #include <iostream>
 #include <vector>
+#include <filesystem>
 #include <string.h>
+#include <fstream>
 
-#define ITEM_ISNT_DIR 2001
-#define ITEM_IS_DIR 2002
-#define ITEM_NOT_EXISTS 2003
-#define ZIP_IS_CLOSED 2004
 #define RAND_CHARS "sdokfjogfjerigjeigjergjtrigjtrigjtrugjtuhjuigjerigkeoepferoktphrphopghopgofpgotpogpfogpfgotphlrgplfdbplpdfgpeorepopeopeoeoo"
 
 using namespace std;
+namespace fs = std::filesystem;
 
 class zipIsClosedException : exception
 {
@@ -41,9 +40,26 @@ class cantCheckEncryptedNoFileInside : exception
 class cantListDirTargetNotExists : exception
 {
 };
-class readEncryptedFileByIndexOutOfRange : exception{
+class readEncryptedFileByIndexOutOfRange : exception
+{
 };
-class checkIfIsFolderByIndexOutOfRange : exception{
+class checkIfIsFolderByIndexOutOfRange : exception
+{
+};
+class zipFileNotExists : exception
+{
+};
+class theFileNotIsZip : exception
+{
+};
+class zipFileCannotBeOpen : exception
+{
+};
+class cantAllocateMemory : exception
+{
+};
+class zipOpenDefaultError : exception
+{
 };
 
 class zipCrafter
@@ -52,14 +68,36 @@ public:
     // Class constructor
     zipCrafter(string filename)
     {
-        // Try open the file with specified name
-        this->z = zip_open(filename.c_str(), 0, this->errorCode);
-        if (this->errorCode == 0)
+        this->zipName = filename;
+    };
+
+    // Return the pointer of zip file to programmer
+    //  The lib don't has any responsabilities about changes in the pointer
+    zip *getLibzipFilePointer()
+    {
+        return this->z;
+    }
+
+    void openZip()
+    {
+        if (fs::exists(this->zipName))
         {
-            this->zipIsOpen = true;
+            this->executeZipOpen(false);
         }
-        // Handle some error if has anyone
-        // this->handleOpenErrors();
+        else
+        {
+            throw zipFileNotExists();
+        }
+    }
+
+    void createZip()
+    {
+        if (fs::exists(this->zipName))
+        {
+            fs::remove_all(this->zipName);
+        }
+
+        this->executeZipOpen(true);
     };
 
     // Get file size by index, error if out of range
@@ -89,9 +127,6 @@ public:
     {
         if (checkIfFileIsOpen())
         {
-            // struct zip_stat st;
-            // Checking if exists
-            // Making sure that isn't an directory
             if (true)
             {
                 if (index < this->getEntriesNumber())
@@ -157,13 +192,13 @@ public:
     }
 
     // Method to write file inside zip file
-    void writeFile(string path, char buffer[])
+    void writeFile(string path, const char buffer[],int sizeToWrite)
     {
         if (checkIfFileIsOpen())
         {
             zip_source_t *source;
-            source = zip_source_buffer(this->z, buffer, 10, 0);
-            zip_file_add(this->z, path.c_str(), source, ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8);
+            source = zip_source_buffer(this->z, buffer, sizeToWrite, 0);
+            zip_file_add(this->z, path.c_str(), source,0);
         }
         else
         {
@@ -193,7 +228,7 @@ public:
     };
 
     // Replace an file by index, error if out of range
-    int replaceFileByIndex(int index, char buffer[])
+    int replaceFileByIndex(int index, char buffer[],int sizeToWrite)
     {
         if (checkIfFileIsOpen())
         {
@@ -201,7 +236,7 @@ public:
             {
                 struct zip_stat st;
                 zip_stat_index(this->z, index, 0, &st);
-                this->writeFile(st.name, buffer);
+                this->writeFile(st.name, buffer,sizeToWrite);
             }
             else
             {
@@ -241,49 +276,63 @@ public:
         }
     };
 
-    bool readEncryptedFileByIndex(int index,string password,int size,char source[]){
-        if(index < this->getEntriesNumber()){
-            if(!checkIfIsFolderByIndex(index)){
-                zip_file *file = zip_fopen_index_encrypted(this->z,index,0,password.c_str());
-                if(file == NULL){
+    bool readEncryptedFileByIndex(int index, string password, int size, char source[])
+    {
+        if (index < this->getEntriesNumber())
+        {
+            if (!checkIfIsFolderByIndex(index))
+            {
+                zip_file *file = zip_fopen_index_encrypted(this->z, index, 0, password.c_str());
+                if (file == NULL)
+                {
                     return false;
                 }
-                else{
+                else
+                {
                     char buffer[size];
-                    zip_fread(file,buffer,size);
-                    strcpy(source,buffer);
+                    zip_fread(file, buffer, size);
+                    strcpy(source, buffer);
                     return true;
                 }
             }
-            else{
+            else
+            {
                 throw itemIsDirectoryExeception();
             }
         }
-        else{
+        else
+        {
             throw readEncryptedFileByIndexOutOfRange();
         }
     };
 
-    bool readEncryptedFile(string path,string password,int size,char source[]){
-        if(this->checkIfExists(path)){
-            if(!this->checkIfItemIsFolder(path)){
-                zip_file *file = zip_fopen_encrypted(this->z,path.c_str(),0,password.c_str());
-                if(file != NULL){
+    bool readEncryptedFile(string path, string password, int size, char source[])
+    {
+        if (this->checkIfExists(path))
+        {
+            if (!this->checkIfItemIsFolder(path))
+            {
+                zip_file *file = zip_fopen_encrypted(this->z, path.c_str(), 0, password.c_str());
+                if (file != NULL)
+                {
                     char buffer[size];
-                    zip_fread(file,buffer,size);
-                    buffer[sizeof(buffer) -1] = '\0';
-                    strcpy(source,buffer);
+                    zip_fread(file, buffer, size);
+                    buffer[sizeof(buffer) - 1] = '\0';
+                    strcpy(source, buffer);
                     return true;
                 }
-                else{
+                else
+                {
                     return false;
                 }
-            }   
-            else{
+            }
+            else
+            {
                 throw itemIsDirectoryExeception();
             }
         }
-        else{
+        else
+        {
             throw itemDontExistsException();
         }
     };
@@ -325,7 +374,7 @@ public:
             zip_file *file2 = zip_fopen_index_encrypted(this->z, 0, 0, "");
             bool fileNull = (file == NULL);
             bool file2Null = (file2 == NULL);
-            if(fileNull == true || file2Null == true)
+            if (fileNull == true || file2Null == true)
             {
                 return true;
             }
@@ -414,31 +463,6 @@ public:
         }
     }
 
-    // Get any error meaning from zip/zipCraft lib
-    string getErrorMeaning(int code)
-    {
-        // Less than 2000 is an error of zip lib
-        if (code < 2000)
-        {
-            zip_error_t error;
-            zip_error_init_with_code(&error, code);
-
-            return zip_error_strerror(&error);
-        }
-        // Greater is an zipCraft error
-        else
-        {
-            switch (code)
-            {
-            case ITEM_ISNT_DIR:
-                return "The item not is a directory";
-
-            default:
-                return "Unknow error";
-            }
-        }
-    }
-
     bool checkIfItemIsFolder(string directory)
     {
         if (directory[directory.length() - 1] != '/')
@@ -470,14 +494,54 @@ public:
         }
     };
 
+    bool checkIfFileIsOpen()
+    {
+        return this->zipIsOpen;
+    }
+
 private:
     zip *z;
     int *errorCode = 0;
     int openZipError;
     bool zipIsOpen = false;
+    string zipName;
 
-    bool checkIfFileIsOpen()
+
+    void handleOpenZipErrors()
     {
-        return this->zipIsOpen;
+        if (this->errorCode != 0)
+        {
+            switch (*this->errorCode)
+            {
+            case ZIP_ER_NOZIP:
+                throw theFileNotIsZip();
+                break;
+            case ZIP_ER_OPEN:
+                throw zipFileCannotBeOpen();
+                break;
+            case ZIP_ER_MEMORY:
+                throw cantAllocateMemory();
+                break;
+            default:
+                throw zipOpenDefaultError();
+                break;
+            }
+        }
+    };
+
+    void executeZipOpen(bool isCreate)
+    {
+        if(isCreate){
+            // Try open the file with specified name
+            this->z = zip_open(this->zipName.c_str(), ZIP_CREATE, this->errorCode);
+        }
+        else{
+            // Try open the file with specified name
+            this->z = zip_open(this->zipName.c_str(), 0, this->errorCode);
+        }
+        if (this->errorCode == 0)
+        {
+            this->zipIsOpen = true;
+        }
     }
 };
