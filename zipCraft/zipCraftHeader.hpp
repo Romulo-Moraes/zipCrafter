@@ -38,10 +38,9 @@ class replaceFileByIndexOutOfRange : exception
 class cantCheckEncryptedNoFileInside : exception
 {
 };
-class cantListDirTargetNotExists : exception{
-
+class cantListDirTargetNotExists : exception
+{
 };
-
 
 class zipCrafter
 {
@@ -82,40 +81,33 @@ public:
     };
 
     // Read file by index, error if out of range
-    void readFileByIndex(string path, unsigned int index, int size, char *source)
+    void readFileByIndex(unsigned int index, int size, char *source)
     {
         if (checkIfFileIsOpen())
         {
             // struct zip_stat st;
             // Checking if exists
-            if (checkIfExists(path))
+            // Making sure that isn't an directory
+            if (true)
             {
-                // Making sure that isn't an directory
-                if (!checkIfItemIsFolder(path))
+                if (index < this->getEntriesNumber())
                 {
-                    if (index < this->getEntriesNumber())
-                    {
-                        zip_file *f = zip_fopen_index(this->z, index, 0);
-                        char buffer[size + 1];
-                        // Read file
-                        zip_fread(f, &buffer, size);
-                        buffer[sizeof(buffer) - 1] = '\0';
-                        // Returning the buffer
-                        strcpy(source, buffer);
-                    }
-                    else
-                    {
-                        throw readByIndexOutOfRange();
-                    }
+                    zip_file *f = zip_fopen_index(this->z, index, 0);
+                    char buffer[size + 1];
+                    // Read file
+                    zip_fread(f, &buffer, size);
+                    buffer[sizeof(buffer) - 1] = '\0';
+                    // Returning the buffer
+                    strcpy(source, buffer);
                 }
                 else
                 {
-                    throw itemIsDirectoryExeception();
+                    throw readByIndexOutOfRange();
                 }
             }
             else
             {
-                throw itemDontExistsException();
+                throw itemIsDirectoryExeception();
             }
         }
         else
@@ -172,6 +164,22 @@ public:
         else
         {
             throw zipIsClosedException();
+        }
+    };
+
+    bool checkIfIsFolderByIndex(unsigned int index){
+        if(index < this->getEntriesNumber()){
+            struct zip_stat st;
+            zip_stat_index(this->z,index,0,&st);
+            if(st.name[strlen(st.name) - 1] == '/'){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        else{
+            cout << "Opa";
         }
     };
 
@@ -331,7 +339,8 @@ public:
                 }
                 return allFiles;
             }
-            else{
+            else
+            {
                 throw cantListDirTargetNotExists();
             }
         }

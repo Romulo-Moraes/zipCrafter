@@ -7,10 +7,8 @@ using namespace std;
 
 int main(){
     
-    zipCrafter crafter("package.zip");
+    zipCrafter crafter("packagee.zip");
 
-    crafter.listDirectory("");
-
-    crafter.closeZip();
+    cout << crafter.checkIfIsFolderByIndex(0);
     
 };
