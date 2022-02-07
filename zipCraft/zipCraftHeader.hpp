@@ -41,6 +41,10 @@ class cantCheckEncryptedNoFileInside : exception
 class cantListDirTargetNotExists : exception
 {
 };
+class readEncryptedFileByIndexOutOfRange : exception{
+};
+class checkIfIsFolderByIndexOutOfRange : exception{
+};
 
 class zipCrafter
 {
@@ -167,19 +171,24 @@ public:
         }
     };
 
-    bool checkIfIsFolderByIndex(unsigned int index){
-        if(index < this->getEntriesNumber()){
+    bool checkIfIsFolderByIndex(unsigned int index)
+    {
+        if (index < this->getEntriesNumber())
+        {
             struct zip_stat st;
-            zip_stat_index(this->z,index,0,&st);
-            if(st.name[strlen(st.name) - 1] == '/'){
+            zip_stat_index(this->z, index, 0, &st);
+            if (st.name[strlen(st.name) - 1] == '/')
+            {
                 return true;
             }
-            else{
+            else
+            {
                 return false;
             }
         }
-        else{
-            cout << "Opa";
+        else
+        {
+            throw checkIfIsFolderByIndexOutOfRange();
         }
     };
 
@@ -232,21 +241,74 @@ public:
         }
     };
 
-    int fileSize(string path)
+    bool readEncryptedFileByIndex(int index,string password,int size,char source[]){
+        if(index < this->getEntriesNumber()){
+            if(!checkIfIsFolderByIndex(index)){
+                zip_file *file = zip_fopen_index_encrypted(this->z,index,0,password.c_str());
+                if(file == NULL){
+                    return false;
+                }
+                else{
+                    char buffer[size];
+                    zip_fread(file,buffer,size);
+                    strcpy(source,buffer);
+                    return true;
+                }
+            }
+            else{
+                throw itemIsDirectoryExeception();
+            }
+        }
+        else{
+            throw readEncryptedFileByIndexOutOfRange();
+        }
+    };
+
+    bool readEncryptedFile(string path,string password,int size,char source[]){
+        if(this->checkIfExists(path)){
+            if(!this->checkIfItemIsFolder(path)){
+                zip_file *file = zip_fopen_encrypted(this->z,path.c_str(),0,password.c_str());
+                if(file != NULL){
+                    char buffer[size];
+                    zip_fread(file,buffer,size);
+                    buffer[sizeof(buffer) -1] = '\0';
+                    strcpy(source,buffer);
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }   
+            else{
+                throw itemIsDirectoryExeception();
+            }
+        }
+        else{
+            throw itemDontExistsException();
+        }
+    };
+
+    zip_uint64_t fileSize(string path)
     {
         if (checkIfFileIsOpen())
         {
-            cout << "4" << endl;
-            if (!checkIfItemIsFolder(path))
+            if (checkIfExists(path))
             {
-                cout << "3" << endl;
-                struct zip_stat st;
-                zip_stat(this->z, path.c_str(), 0, &st);
-                return st.size;
+                if (!checkIfItemIsFolder(path))
+                {
+                    struct zip_stat st;
+                    zip_stat(this->z, path.c_str(), 0, &st);
+                    return st.size;
+                }
+                else
+                {
+                    throw itemIsDirectoryExeception();
+                }
             }
             else
             {
-                throw itemIsDirectoryExeception();
+                cout << "not exists";
+                return 0;
             }
         }
         else
@@ -261,7 +323,9 @@ public:
         {
             zip_file *file = zip_fopen_index_encrypted(this->z, 0, 0, RAND_CHARS);
             zip_file *file2 = zip_fopen_index_encrypted(this->z, 0, 0, "");
-            if ((file == NULL) && (file2 == NULL))
+            bool fileNull = (file == NULL);
+            bool file2Null = (file2 == NULL);
+            if(fileNull == true || file2Null == true)
             {
                 return true;
             }
