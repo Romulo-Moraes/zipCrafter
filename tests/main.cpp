@@ -6,9 +6,5 @@
 using namespace std;
 
 int main(){
-    
-    zipCrafter crafter("packagee.zip");
-
-    cout << crafter.checkIfIsFolderByIndex(0);
-    
+    zipCrafter crafter("package.zip");
 };
