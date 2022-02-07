@@ -14,6 +14,4 @@ int main(){
     crafter.openZip();
 
     string name = crafter.getFileNameByIndex(0);
-    
-
 };

@@ -17,56 +17,63 @@ namespace fs = std::filesystem;
 class zipIsClosedException : exception
 {
 };
-class zipAlreadyClosed : exception
-{
-};
+// class zipAlreadyClosed : exception
+// {
+// };
 class itemIsDirectoryExeception : exception
 {
 };
 class itemDontExistsException : exception
 {
 };
-class itemNotIsDirectory : exception
+class itemNotIsDirectoryException : exception
 {
 };
-class readByIndexOutOfRange : exception
+class readByIndexOutOfRangeException : exception
 {
 };
-class fileSizeByIndexOutOfRange : exception
+class fileSizeByIndexOutOfRangeException : exception
 {
 };
-class replaceFileByIndexOutOfRange : exception
+class replaceFileByIndexOutOfRangeException : exception
 {
 };
 class cantCheckEncryptedNoFileInside : exception
 {
 };
-class cantListDirTargetNotExists : exception
+class targetNotExistsCantListException : exception
 {
 };
-class readEncryptedFileByIndexOutOfRange : exception
+class readEncryptedFileByIndexOutOfRangeException : exception
 {
 };
-class checkIfIsFolderByIndexOutOfRange : exception
+class checkIfIsFolderByIndexOutOfRangeException : exception
 {
 };
-class zipFileNotExists : exception
+class zipFileNotExistsException : exception
 {
 };
-class theFileNotIsZip : exception
+class theFileNotIsZipException : exception
 {
 };
-class zipFileCannotBeOpen : exception
+class zipFileCannotBeOpenException : exception
 {
 };
-class cantAllocateMemory : exception
+class cantAllocateMemoryException : exception
 {
 };
-class zipOpenDefaultError : exception
+class zipOpenDefaultErrorException : exception
 {
 };
-class unknowEncryptionMethodException : exception{};
-class setPasswordToFileByIndexOutOfRange : exception{};
+class unknowEncryptionMethodException : exception
+{
+};
+class setPasswordToFileByIndexOutOfRangeException : exception
+{
+};
+class zipAlreadyClosedException : exception
+{
+};
 
 class zipCrafter
 {
@@ -92,42 +99,54 @@ public:
         }
         else
         {
-            throw zipFileNotExists();
+            throw zipFileNotExistsException();
         }
     }
 
-    void setPasswordToFile(string path,int encryption,string password){
-        if(this->checkIfFileIsOpen()){
-            if(checkIfExists(path)){
-                if(checkIfEncryptionExists(encryption)){
+    void setPasswordToFile(string path, int encryption, string password)
+    {
+        if (this->checkIfFileIsOpen())
+        {
+            if (checkIfExists(path))
+            {
+                if (checkIfEncryptionExists(encryption))
+                {
                     struct zip_stat st;
-                    zip_stat(this->z,path.c_str(),0,&st);
-                    zip_file_set_encryption(this->z,st.index,encryption,password.c_str());
+                    zip_stat(this->z, path.c_str(), 0, &st);
+                    zip_file_set_encryption(this->z, st.index, encryption, password.c_str());
                 }
-                else{
+                else
+                {
                     throw unknowEncryptionMethodException();
                 }
             }
-            else{
+            else
+            {
                 throw itemDontExistsException();
             }
-        }   
-        else{
+        }
+        else
+        {
             throw zipIsClosedException();
         }
     };
 
-    void setPasswordToFileByIndex(int index,int encryption,string password){
-        if(index < this->getEntriesNumber()){
-            if(checkIfEncryptionExists(encryption)){
-                zip_file_set_encryption(this->z,index,encryption,password.c_str());
+    void setPasswordToFileByIndex(int index, int encryption, string password)
+    {
+        if (index < this->getEntriesNumber())
+        {
+            if (checkIfEncryptionExists(encryption))
+            {
+                zip_file_set_encryption(this->z, index, encryption, password.c_str());
             }
-            else{
+            else
+            {
                 throw unknowEncryptionMethodException();
             }
-        }   
-        else{
-            throw setPasswordToFileByIndexOutOfRange();
+        }
+        else
+        {
+            throw setPasswordToFileByIndexOutOfRangeException();
         }
     };
 
@@ -154,7 +173,7 @@ public:
             }
             else
             {
-                throw fileSizeByIndexOutOfRange();
+                throw fileSizeByIndexOutOfRangeException();
             }
         }
         else
@@ -182,7 +201,7 @@ public:
                 }
                 else
                 {
-                    throw readByIndexOutOfRange();
+                    throw readByIndexOutOfRangeException();
                 }
             }
             else
@@ -196,23 +215,28 @@ public:
         }
     };
 
-    int getFileIndexByName(string filename){
-        if(checkIfExists(filename)){
+    int getFileIndexByName(string filename)
+    {
+        if (checkIfExists(filename))
+        {
             struct zip_stat st;
-            zip_stat(this->z,filename.c_str(),0,&st);
+            zip_stat(this->z, filename.c_str(), 0, &st);
             return st.index;
         }
-        else{
+        else
+        {
             throw itemDontExistsException();
         }
     };
 
-    string getFileNameByIndex(int index){
-        if(index < this->getEntriesNumber()){
-            return zip_get_name(this->z,index,0);
+    string getFileNameByIndex(int index)
+    {
+        if (index < this->getEntriesNumber())
+        {
+            return zip_get_name(this->z, index, 0);
         }
-        else{
-
+        else
+        {
         }
     }
 
@@ -253,13 +277,13 @@ public:
     }
 
     // Method to write file inside zip file
-    void writeFile(string path, const char buffer[],int sizeToWrite)
+    void writeFile(string path, const char buffer[], int sizeToWrite)
     {
         if (checkIfFileIsOpen())
         {
             zip_source_t *source;
             source = zip_source_buffer(this->z, buffer, sizeToWrite, 0);
-            zip_file_add(this->z, path.c_str(), source,0);
+            zip_file_add(this->z, path.c_str(), source, 0);
             this->writeFileInDisk();
         }
         else
@@ -285,12 +309,12 @@ public:
         }
         else
         {
-            throw checkIfIsFolderByIndexOutOfRange();
+            throw checkIfIsFolderByIndexOutOfRangeException();
         }
     };
 
     // Replace an file by index, error if out of range
-    int replaceFileByIndex(int index, char buffer[],int sizeToWrite)
+    int replaceFileByIndex(int index, char buffer[], int sizeToWrite)
     {
         if (checkIfFileIsOpen())
         {
@@ -298,12 +322,12 @@ public:
             {
                 struct zip_stat st;
                 zip_stat_index(this->z, index, 0, &st);
-                this->writeFile(st.name, buffer,sizeToWrite);
+                this->writeFile(st.name, buffer, sizeToWrite);
                 this->writeFileInDisk();
             }
             else
             {
-                throw replaceFileByIndexOutOfRange();
+                throw replaceFileByIndexOutOfRangeException();
             }
         }
         else
@@ -321,7 +345,7 @@ public:
         }
         else
         {
-            throw zipAlreadyClosed();
+            throw zipAlreadyClosedException();
         }
     }
 
@@ -365,7 +389,7 @@ public:
         }
         else
         {
-            throw readEncryptedFileByIndexOutOfRange();
+            throw readEncryptedFileByIndexOutOfRangeException();
         }
     };
 
@@ -510,14 +534,14 @@ public:
                     else
                     {
                         // Is not a folder, then assign error code to pointer;
-                        throw itemNotIsDirectory();
+                        throw itemNotIsDirectoryException();
                     }
                 }
                 return allFiles;
             }
             else
             {
-                throw cantListDirTargetNotExists();
+                throw targetNotExistsCantListException();
             }
         }
         else
@@ -569,7 +593,8 @@ private:
     bool zipIsOpen = false;
     string zipName;
 
-    void writeFileInDisk(){
+    void writeFileInDisk()
+    {
         this->closeZip();
         this->openZip();
     };
@@ -581,23 +606,25 @@ private:
             switch (*this->errorCode)
             {
             case ZIP_ER_NOZIP:
-                throw theFileNotIsZip();
+                throw theFileNotIsZipException();
                 break;
             case ZIP_ER_OPEN:
-                throw zipFileCannotBeOpen();
+                throw zipFileCannotBeOpenException();
                 break;
             case ZIP_ER_MEMORY:
-                throw cantAllocateMemory();
+                throw cantAllocateMemoryException();
                 break;
             default:
-                throw zipOpenDefaultError();
+                throw zipOpenDefaultErrorException();
                 break;
             }
         }
     };
 
-    bool checkIfEncryptionExists(int encryption){
-        if(encryption == AES_128_ENCRYPTION || encryption == AES_192_ENCRYPTION || encryption == AES_256_ENCRYPTION){
+    bool checkIfEncryptionExists(int encryption)
+    {
+        if (encryption == AES_128_ENCRYPTION || encryption == AES_192_ENCRYPTION || encryption == AES_256_ENCRYPTION)
+        {
             return true;
         }
         return false;
@@ -605,11 +632,13 @@ private:
 
     void executeZipOpen(bool isCreate)
     {
-        if(isCreate){
+        if (isCreate)
+        {
             // Try open the file with specified name
             this->z = zip_open(this->zipName.c_str(), ZIP_CREATE, this->errorCode);
         }
-        else{
+        else
+        {
             // Try open the file with specified name
             this->z = zip_open(this->zipName.c_str(), 0, this->errorCode);
         }
