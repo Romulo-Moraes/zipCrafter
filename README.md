@@ -82,7 +82,7 @@ in the end of all operations you need to close the file:
 ### Try open file with some password:
 
     //Return an bool to you know if was the correct password
-    bool correctPassword = crafter.readEncryptedFile("main.cpp","romjijiulo",sizeToRead,buffer);
+    bool correctPassword = crafter.readEncryptedFile("main.cpp","password",sizeToRead,buffer);
 
 ### Try open file with some password by index
 
