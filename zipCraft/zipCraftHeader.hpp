@@ -87,7 +87,7 @@ public:
 
     // Return the pointer of zip file to programmer
     //  The lib don't has any responsabilities about changes in the pointer
-    zip *getLibzipFilePointer()
+    zip*getLibzipFilePointer()
     {
         return this->z;
     }

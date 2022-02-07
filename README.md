@@ -134,3 +134,10 @@ crafter.writeFile("example.txt","hello!",6);
 crafter.setPasswordToFileByIndex(0,AES_256_ENCRYPTION,":)");
 ```
 
+# The raw file pointer
+### You literally just can get the zip* pointer for your variables, then use the libzip power by yourself
+```C++
+zip *z = crafter.getLibzipFilePointer();
+```
+### this method don't care if the file already open, closed or broken, it just do it.
+### remember, the zipCrafter library don't have any responsabilities about what you do with the pointer, it just leave it in your hands. With big powers come bigs responsabilities.

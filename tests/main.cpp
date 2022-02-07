@@ -13,7 +13,7 @@ int main(){
 
     crafter.openZip();
 
-    string name = crafter.getFileNameByIndex(0);
+    zip *z = crafter.getLibzipFilePointer();
 
-    crafter.checkif
+    cout << zip_get_name(z,0,0);
 };
