@@ -1,7 +1,6 @@
 <div align="center">
-    <font size="7">ZipCraft</font>
-    <br/> 
-    <font size="4">C++ libzip wrapper library to interact with zip files</font>
+    <h1>ZipCrafter</h1>
+    <h3>C++ library to interact with zip files</h3>
 </div>
 
 # About
@@ -69,8 +68,3 @@ check file size by index (has possible execeptions):
 in the end of all operations you need to close the file:
 
     crafter.closeZip();
-
-
-
-
-
