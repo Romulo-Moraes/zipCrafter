@@ -85,9 +85,10 @@ in the end of all operations you need to close the file:
     bool correctPassword = crafter.readEncryptedFile("main.cpp","password",sizeToRead,buffer);
 
 ### Try open file with some password by index
-
+    ```C++
     int sizeToRead = 10;
     char buffer[sizeToRead + 1];
     bool correctPassword = crafter.readEncryptedFileByIndex(0,"password",sizeToRead,buffer);
+    ```
 
 
