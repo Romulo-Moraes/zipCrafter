@@ -83,6 +83,14 @@ in the end of all operations you need to close the file:
     crafter.closeZip();
 
 ```
+### get file index by name
+```C++
+crafter.writeFile("hello.txt",":)",2);
+crafter.writeFile("hello2.txt",":)",2);
+
+cout << crafter.getFileIndexByName("hello2.txt");
+```
+
 # Operations with encrypted files
 ### Some times the files inside zip can be encrypted, then you can with this lib check and try open with some password, yours or of the user.
 
@@ -117,7 +125,7 @@ cout << crafter.checkIfExists("example.txt");
     crafter.setPasswordToFile("example.txt",AES_256_ENCRYPTION,":)");
 ```
 
-## Setting password by index
+### Setting password by index
 ```C++
 crafter.writeFile("example.txt","hello!",6);
 

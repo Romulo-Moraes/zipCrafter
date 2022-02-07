@@ -13,9 +13,12 @@ int main(){
 
     crafter.createZip();
 
-    crafter.writeFile("exmaple.txt","hello!",6);
+    crafter.writeFile("hello.txt",":)",2);
+    crafter.writeFile("hello2.txt",":)",2);
 
-    crafter.setPasswordToFileByIndex(0,AES_256_ENCRYPTION,":)");
+    cout << crafter.getFileIndexByName("hello2.txt");
+
+    crafter.closeZip();
     
 
 };

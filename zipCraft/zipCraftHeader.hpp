@@ -196,6 +196,17 @@ public:
         }
     };
 
+    int getFileIndexByName(string filename){
+        if(checkIfExists(filename)){
+            struct zip_stat st;
+            zip_stat(this->z,filename.c_str(),0,&st);
+            return st.index;
+        }
+        else{
+            throw itemDontExistsException();
+        }
+    };
+
     // Read an file
     void readFile(string path, int size, char *source)
     {
