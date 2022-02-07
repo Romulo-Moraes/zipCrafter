@@ -17,9 +17,6 @@ namespace fs = std::filesystem;
 class zipIsClosedException : exception
 {
 };
-// class zipAlreadyClosed : exception
-// {
-// };
 class itemIsDirectoryExeception : exception
 {
 };
@@ -74,6 +71,10 @@ class setPasswordToFileByIndexOutOfRangeException : exception
 class zipAlreadyClosedException : exception
 {
 };
+class setPasswordToDirectoryExeception : exception
+{
+};
+class getFileNameByIndexOutOfRangeException : exception{};
 
 class zipCrafter
 {
@@ -109,15 +110,22 @@ public:
         {
             if (checkIfExists(path))
             {
-                if (checkIfEncryptionExists(encryption))
+                if (!checkIfItemIsFolder(path))
                 {
-                    struct zip_stat st;
-                    zip_stat(this->z, path.c_str(), 0, &st);
-                    zip_file_set_encryption(this->z, st.index, encryption, password.c_str());
+                    if (checkIfEncryptionExists(encryption))
+                    {
+                        struct zip_stat st;
+                        zip_stat(this->z, path.c_str(), 0, &st);
+                        zip_file_set_encryption(this->z, st.index, encryption, password.c_str());
+                    }
+                    else
+                    {
+                        throw unknowEncryptionMethodException();
+                    }
                 }
                 else
                 {
-                    throw unknowEncryptionMethodException();
+                    throw setPasswordToDirectoryExeception();
                 }
             }
             else
@@ -133,20 +141,27 @@ public:
 
     void setPasswordToFileByIndex(int index, int encryption, string password)
     {
-        if (index < this->getEntriesNumber())
+        if (this->checkIfFileIsOpen())
         {
-            if (checkIfEncryptionExists(encryption))
+            if (this->indexInsideOfRange(index))
             {
-                zip_file_set_encryption(this->z, index, encryption, password.c_str());
+                if (checkIfEncryptionExists(encryption))
+                {
+                    zip_file_set_encryption(this->z, index, encryption, password.c_str());
+                }
+                else
+                {
+                    throw unknowEncryptionMethodException();
+                }
             }
             else
             {
-                throw unknowEncryptionMethodException();
+                throw setPasswordToFileByIndexOutOfRangeException();
             }
         }
         else
         {
-            throw setPasswordToFileByIndexOutOfRangeException();
+            throw zipIsClosedException();
         }
     };
 
@@ -165,7 +180,7 @@ public:
     {
         if (checkIfFileIsOpen())
         {
-            if (index < this->getEntriesNumber())
+            if (this->indexInsideOfRange(index))
             {
                 struct zip_stat st;
                 zip_stat_index(this->z, index, 0, &st);
@@ -187,9 +202,9 @@ public:
     {
         if (checkIfFileIsOpen())
         {
-            if (true)
+            if (!checkIfIsFolderByIndex(index))
             {
-                if (index < this->getEntriesNumber())
+                if (this->indexInsideOfRange(index))
                 {
                     zip_file *f = zip_fopen_index(this->z, index, 0);
                     char buffer[size + 1];
@@ -231,12 +246,13 @@ public:
 
     string getFileNameByIndex(int index)
     {
-        if (index < this->getEntriesNumber())
+        if (this->indexInsideOfRange(index))
         {
             return zip_get_name(this->z, index, 0);
         }
         else
         {
+            throw getFileNameByIndexOutOfRangeException();
         }
     }
 
@@ -245,7 +261,6 @@ public:
     {
         if (checkIfFileIsOpen())
         {
-            // struct zip_stat st;
             // Checking if exists
             if (checkIfExists(path))
             {
@@ -294,7 +309,7 @@ public:
 
     bool checkIfIsFolderByIndex(unsigned int index)
     {
-        if (index < this->getEntriesNumber())
+        if (this->indexInsideOfRange(index))
         {
             struct zip_stat st;
             zip_stat_index(this->z, index, 0, &st);
@@ -318,7 +333,7 @@ public:
     {
         if (checkIfFileIsOpen())
         {
-            if (index < this->getEntriesNumber())
+            if (this->indexInsideOfRange(index))
             {
                 struct zip_stat st;
                 zip_stat_index(this->z, index, 0, &st);
@@ -365,7 +380,7 @@ public:
 
     bool readEncryptedFileByIndex(int index, string password, int size, char source[])
     {
-        if (index < this->getEntriesNumber())
+        if (this->indexInsideOfRange(index))
         {
             if (!checkIfIsFolderByIndex(index))
             {
@@ -598,6 +613,13 @@ private:
         this->closeZip();
         this->openZip();
     };
+
+    bool indexInsideOfRange(int index){
+        if(index < this->getEntriesNumber()){
+            return true;
+        }
+        return false;
+    }
 
     void handleOpenZipErrors()
     {
