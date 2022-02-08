@@ -13,7 +13,5 @@ int main(){
 
     crafter.openZip();
 
-    zip *z = crafter.getLibzipFilePointer();
-
-    cout << zip_get_name(z,0,0);
+    auto opa = crafter.listDirectory("example.txt");  
 };

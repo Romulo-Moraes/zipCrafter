@@ -75,6 +75,7 @@ class setPasswordToDirectoryExeception : exception
 {
 };
 class getFileNameByIndexOutOfRangeException : exception{};
+class listDirectoryInAnFileException : exception{};
 
 class zipCrafter
 {
@@ -490,6 +491,8 @@ public:
             throw cantCheckEncryptedNoFileInside();
         }
     }
+
+    
 
     // List the  base directory by default, but is possible specify the target
     vector<string> listDirectory(string directory = "")
